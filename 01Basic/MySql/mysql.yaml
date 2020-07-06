@@ -4,6 +4,16 @@ metadata:
   name: mybox
 ---
 apiVersion: v1
+kind: Secret
+metadata:
+  name: mybox-secret
+  namespace: mybox
+type: Opaque
+data:
+  mysql_root_password: cGFzc3dvcmQ=
+
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: mysql
@@ -38,7 +48,10 @@ spec:
         image: mysql:5.6
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: password
+          valueFrom:
+            secretKeyRef:
+              name: mybox-secret
+              key: mysql_root_password
         ports:
         - containerPort: 3306
           name: mysql

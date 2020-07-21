@@ -387,25 +387,25 @@ cat > node02.json <<EOF
 EOF
 
 cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=ca-config.json \
-  -profile=kubernetes \
-  node00.json | cfssljson -bare node00
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  centos00.json | cfssljson -bare centos00
+  
+cfssl gencert \cfssl gencert \
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  centos01.json | cfssljson -bare centos01
   
 cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=ca-config.json \
-  -profile=kubernetes \
-  node01.json | cfssljson -bare node01
-  
-cfssl gencert \
-  -ca=ca.pem \
-  -ca-key=ca-key.pem \
-  -config=ca-config.json \
-  -profile=kubernetes \
-  node02.json | cfssljson -bare node02
+  -ca=ca.pem \
+  -ca-key=ca-key.pem \
+  -config=ca-config.json \
+  -profile=kubernetes \
+  centos02.json | cfssljson -bare centos02
 ```
 ## 创建 admin 证书
 
@@ -778,7 +778,7 @@ After=etcd.service
 
 [Service]
 ExecStart=/usr/local/bin/kube-apiserver \
-    --advertise-address=192.168.0.201 \
+    --advertise-address=192.168.101.101 \
     --allow-privileged=true \
     --audit-log-maxage=30 \
     --audit-log-maxbackup=3 \
@@ -792,12 +792,12 @@ ExecStart=/usr/local/bin/kube-apiserver \
     --etcd-cafile=/etc/kubernetes/ssl/ca.pem \
     --etcd-certfile=/etc/kubernetes/ssl/kubernetes.pem \
     --etcd-keyfile=/etc/kubernetes/ssl/kubernetes-key.pem \
-    --etcd-servers=https://192.168.0.201:2379,https://192.168.0.202:2379,https://192.168.0.203:2379 \
+    --etcd-servers=https://192.168.101.100:2379,https://192.168.101.101:2379,https://192.168.101.102:2379 \
     --event-ttl=1h \
     --insecure-bind-address=127.0.0.1 \
     --kubelet-certificate-authority=/etc/kubernetes/ssl/ca.pem \
-    --kubelet-client-certificate=/etc/kubernetes/ssl/master01.pem \
-    --kubelet-client-key=/etc/kubernetes/ssl/master01-key.pem \
+    --kubelet-client-certificate=/etc/kubernetes/ssl/centos01.pem \
+    --kubelet-client-key=/etc/kubernetes/ssl/centos01-key.pem \
     --kubelet-https=true \
     --service-account-key-file=/etc/kubernetes/ssl/service-account.pem \
     --service-cluster-ip-range=10.254.0.0/16 \
@@ -1127,15 +1127,15 @@ kubectl config set-cluster kubernetes-training \
   --server=https://127.0.0.1:6443 \
   --kubeconfig=kubelet.config
 
-kubectl config set-credentials system:node:node00 \
-  --client-certificate=/etc/kubernetes/ssl/node00.pem \
-  --client-key=/etc/kubernetes/ssl/node00-key.pem \
+kubectl config set-credentials system:node:centos00 \
+  --client-certificate=/etc/kubernetes/ssl/centos00.pem \
+  --client-key=/etc/kubernetes/ssl/centos00-key.pem \
   --embed-certs=true \
   --kubeconfig=kubelet.config
 
 kubectl config set-context default \
   --cluster=kubernetes-training \
-  --user=system:node:node00 \
+  --user=system:node:centos00 \
   --kubeconfig=kubelet.config
 
 kubectl config use-context default --kubeconfig=kubelet.config
@@ -1147,16 +1147,16 @@ kubectl config set-cluster kubernetes-training \
   --kubeconfig=kubelet.config
 
 
-kubectl config set-credentials system:node:node01 \
-  --client-certificate=/etc/kubernetes/ssl/node01.pem \
-  --client-key=/etc/kubernetes/ssl/node01-key.pem \
+kubectl config set-credentials system:node:centos01 \
+  --client-certificate=/etc/kubernetes/ssl/centos01.pem \
+  --client-key=/etc/kubernetes/ssl/centos01-key.pem \
   --embed-certs=true \
   --kubeconfig=kubelet.config
 
 
 kubectl config set-context default \
   --cluster=kubernetes-training \
-  --user=system:node:node01 \
+  --user=system:node:centos01 \
   --kubeconfig=kubelet.config
 
 
@@ -1168,15 +1168,15 @@ kubectl config set-cluster kubernetes-training \
   --server=https://127.0.0.1:6443 \
   --kubeconfig=kubelet.config
 
-kubectl config set-credentials system:node:node02 \
-  --client-certificate=/etc/kubernetes/ssl/node02.pem \
-  --client-key=/etc/kubernetes/ssl/node02-key.pem \
+kubectl config set-credentials system:node:centos02 \
+  --client-certificate=/etc/kubernetes/ssl/centos02.pem \
+  --client-key=/etc/kubernetes/ssl/centos02-key.pem \
   --embed-certs=true \
   --kubeconfig=kubelet.config
 
 kubectl config set-context default \
   --cluster=kubernetes-training \
-  --user=system:node:node02 \
+  --user=system:node:centos02 \
   --kubeconfig=kubelet.config
 
 kubectl config use-context default --kubeconfig=kubelet.config
@@ -1433,18 +1433,18 @@ vrrp_script haproxy-check {
 vrrp_instance haproxy-vip {
     state MASTER
     priority 250
-    interface ens33
+    interface ens192
     virtual_router_id 47
     advert_int 3
  
-    unicast_src_ip 192.168.0.201
+    unicast_src_ip 192.168.101.100
     unicast_peer {
-        192.168.0.202
-        192.168.0.203 
+        192.168.101.101
+        192.168.101.102
     }
  
     virtual_ipaddress {
-        192.168.0.210
+        192.168.101.110
     }
  
     track_script {

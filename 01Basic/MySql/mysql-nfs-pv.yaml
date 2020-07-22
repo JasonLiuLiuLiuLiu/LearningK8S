@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-data-nfs-pv
+  namespace: mybox
+  labels:
+    pv: mysql-data
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.101.4
+    path: "/export/k8s/mysql/data"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-config-nfs-pv
+  namespace: mybox
+  labels:
+    pv: mysql-config
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany
+  nfs:
+    server: 192.168.101.4
+    path: "/export/k8s/mysql/config"

@@ -14,6 +14,38 @@ data:
 
 ---
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-data-pv-claim
+  namespace: mybox
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 10Gi
+  selector:
+    matchLabels:
+      pv: mysql-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-config-pv-claim
+  namespace: mybox
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual
+  resources:
+    requests:
+      storage: 1Gi
+  selector:
+    matchLabels:
+      pv: mysql-config
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: mysql
@@ -46,6 +78,7 @@ spec:
       containers:
       - name: mysql
         image: mysql:5.6
+        args: ["--character-set-server=utf8mb4","--collation-server=utf8mb4_unicode_ci"]
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -57,10 +90,15 @@ spec:
           name: mysql
         volumeMounts:
           - mountPath: /var/lib/mysql
-            name: mysql-persistent-storage
+            name: mysql-data-pv-claim
+          - mountPath: /etc/mysql
+            name: mysql-config-pv-claim
       volumes:
-        - name: mysql-persistent-storage
-          hostPath:
-              path: /var/lib/mysql
+        - name: mysql-data-pv-claim
+          persistentVolumeClaim:
+            claimName: mysql-data-pv-claim
+        - name: mysql-config-pv-claim
+          persistentVolumeClaim:
+            claimName: mysql-config-pv-claim
 
 

@@ -1,22 +1,28 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: mongodb-nfs
+  name: mongo
   namespace: mybox
 spec:
   selector:
     matchLabels:
-      app: mongodb-nfs # has to match .spec.template.metadata.labels
-  serviceName: "mongodb-nfs"
+      app: mongo # has to match .spec.template.metadata.labels
+  serviceName: "mongo"
+  replicas: 3
   template:
     metadata:
       labels:
-        app: mongodb-nfs # has to match .spec.selector.matchLabels
+        app: mongo # has to match .spec.selector.matchLabels
     spec:
       terminationGracePeriodSeconds: 10
       containers:
       - name: mongodb
         image: mongo
+        command: 
+        - mongod 
+        - "--bind_ip_all"
+        - "--replSet"
+        - rs0
         ports:
         - containerPort: 27017
           protocol: TCP

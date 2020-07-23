@@ -1,0 +1,1 @@
+helm install nfs-client-provision stable/nfs-client-provisioner --set nfs.server=192.168.101.4 --set nfs.path=/export/k8s -n mybox

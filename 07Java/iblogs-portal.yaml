@@ -26,6 +26,7 @@ spec:
   selector:
     matchLabels:
       app: iblogs-portal
+  replicas: 2
   strategy:
     type: Recreate
   template:

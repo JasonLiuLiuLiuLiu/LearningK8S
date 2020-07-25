@@ -11,7 +11,8 @@
       "kubernetes.default",
       "kubernetes.default.svc",
       "kubernetes.default.svc.cluster",
-      "kubernetes.default.svc.cluster.local"
+      "kubernetes.default.svc.cluster.local",
+      "kube.iblogs.site"
     ],
     "key": {
         "algo": "rsa",

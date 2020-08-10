@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mybox
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iblogs-web
+  namespace: mybox
+spec:
+  selector:
+    app: iblogs-web
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iblogs-web
+  namespace: mybox
+spec:
+  selector:
+    matchLabels:
+      app: iblogs-web
+  replicas: 2
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: iblogs-web
+    spec:
+      containers:
+        - name: iblogs
+          image: liuzhenyulive/iblogs.web:33
+          ports:
+            - containerPort: 80
+              name: iblogs-web

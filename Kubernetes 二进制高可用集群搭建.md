@@ -27,10 +27,10 @@
 * Keepalived和ＨaProxy 
 # 机器准备
 
-| 192.168.0.201   | node00   | etcd, master, node,    keepalived, haproxy   | 
+| 192.168.101.100   | node00   | etcd, master, node,    keepalived, haproxy   | 
 |:----|:----|:----|
-| 192.168.0.202   | node01   | etcd, master, node, keepalived, haproxy   | 
-| 192.168.0.203   | node02   | etcd, master, node, keepalived, haproxy   | 
+| 192.168.101.101   | node01   | etcd, master, node, keepalived, haproxy   | 
+| 192.168.101.102   | node02   | etcd, master, node, keepalived, haproxy   | 
 | 192.168.0.210   |    | VIP   | 
 
 * 最小2GB内存，2核心CPU，20GB硬盘
@@ -88,11 +88,11 @@ SELinux status:                 disabled
 ** hostname 主机名称修改**
 
 ```
-#192.168.0.201
+#192.168.101.100
 hostnamectl set-hostname node00
-#192.168.0.202
+#192.168.101.101
 hostnamectl set-hostname node01
-#192.168.0.203
+#192.168.101.102
 hostnamectl set-hostname node02
 ```
 ## 时间同步
@@ -115,9 +115,9 @@ timedatectl set-ntp yes
 ```
 vi /etc/hosts
 # 添加以下内容
-192.168.0.201 node00
-192.168.0.202 node01
-192.168.0.203 node02
+192.168.101.100 node00
+192.168.101.101 node01
+192.168.101.102 node02
 ```
 # 证书准备 
 
@@ -222,9 +222,9 @@ EOF
   "CN": "kubernetes",
   "hosts": [
       "127.0.0.1",
-      "192.168.0.201",
-      "192.168.0.202",
-      "192.168.0.203",
+      "192.168.101.100",
+      "192.168.101.101",
+      "192.168.101.102",
       "192.168.0.210"
   ],
   "key": {
@@ -265,9 +265,9 @@ ca-config.json  ca.csr  ca-csr.json  ca-key.pem  ca.pem
     "CN": "kubernetes",
     "hosts": [
       "127.0.0.1",
-      "192.168.0.201",
-      "192.168.0.202",
-      "192.168.0.203",
+      "192.168.101.100",
+      "192.168.101.101",
+      "192.168.101.102",
       "192.168.0.210",
       "10.254.0.1",
       "kubernetes",
@@ -591,8 +591,8 @@ admin.pem      ca.pem      kube-proxy.pem      kubernetes.pem
 复制到node01和node02(确保对应的节点上先创建/etc/kubernetes/ssl的文件夹） 
 
 ```
-scp *.pem root@192.168.0.202:/etc/kubernetes/ssl
-scp *.pem root@192.168.0.203:/etc/kubernetes/ssl
+scp *.pem root@192.168.101.101:/etc/kubernetes/ssl
+scp *.pem root@192.168.101.102:/etc/kubernetes/ssl
 ```
 # 部署ETCD 集群 
 
@@ -605,8 +605,8 @@ cd /root/etcd
 # 在node00上下载文件 
 wget https://github.com/coreos/etcd/releases/download/v3.3.18/etcd-v3.3.18-linux-amd64.tar.gz
 # 下载完之后复制到 node01和 node 02 
-scp etcd-v3.3.18-linux-amd64.tar.gz root@192.168.0.202:/root/etcd
-scp etcd-v3.3.18-linux-amd64.tar.gz root@192.168.0.203:/root/etcd
+scp etcd-v3.3.18-linux-amd64.tar.gz root@192.168.101.101:/root/etcd
+scp etcd-v3.3.18-linux-amd64.tar.gz root@192.168.101.102:/root/etcd
 # 在node00, node01, node02的 /root/etcd目录下执行 
 tar -xvf etcd-v3.3.18-linux-amd64.tar.gz
 mv etcd-v3.3.18-linux-amd64/etcd* /usr/local/bin
@@ -647,12 +647,12 @@ TimeoutStartSec=0
 ExecStart=/usr/local/bin/etcd \
   --name infra1 \
   --data-dir /var/lib/etcd \
-  --initial-advertise-peer-urls https://192.168.0.201:2380 \
-  --listen-peer-urls https://192.168.0.201:2380 \
-  --listen-client-urls https://192.168.0.201:2379 \
-  --advertise-client-urls https://192.168.0.201:2379 \
+  --initial-advertise-peer-urls https://192.168.101.100:2380 \
+  --listen-peer-urls https://192.168.101.100:2380 \
+  --listen-client-urls https://192.168.101.100:2379 \
+  --advertise-client-urls https://192.168.101.100:2379 \
   --initial-cluster-token etcd-cluster \
-  --initial-cluster infra1=https://192.168.0.201:2380,infra2=https://192.168.0.202:2380,infra3=https://192.168.0.203:2380 \
+  --initial-cluster infra1=https://192.168.101.100:2380,infra2=https://192.168.101.101:2380,infra3=https://192.168.101.102:2380 \
   --initial-cluster-state new \
   --client-cert-auth \
   --trusted-ca-file=/etc/kubernetes/ssl/ca.pem \
@@ -706,10 +706,10 @@ systemctl status etcd
 ## 验证etcd服务 
 
 ```
-ETCDCTL_API=3 etcdctl --cert=/etc/kubernetes/ssl/kubernetes.pem --key /etc/kubernetes/ssl/kubernetes-key.pem --insecure-skip-tls-verify=true --endpoints=https://192.168.0.201:2379,https://192.168.0.202:2379,https://192.168.0.203:2379 endpoint health
-https://192.168.0.201:2379 is healthy: successfully committed proposal: took = 13.87734ms
-https://192.168.0.202:2379 is healthy: successfully committed proposal: took = 16.08662ms
-https://192.168.0.203:2379 is healthy: successfully committed proposal: took = 15.656404ms
+ETCDCTL_API=3 etcdctl --cert=/etc/kubernetes/ssl/kubernetes.pem --key /etc/kubernetes/ssl/kubernetes-key.pem --insecure-skip-tls-verify=true --endpoints=https://192.168.101.100:2379,https://192.168.101.101:2379,https://192.168.101.102:2379 endpoint health
+https://192.168.101.100:2379 is healthy: successfully committed proposal: took = 13.87734ms
+https://192.168.101.101:2379 is healthy: successfully committed proposal: took = 16.08662ms
+https://192.168.101.102:2379 is healthy: successfully committed proposal: took = 15.656404ms
 ```
 # 部署Master节点 
 
@@ -752,8 +752,8 @@ EOF
 4. 重新 approve kubelet 的 csr 请求；
 ```
 cp token.csv /etc/kubernetes/
-scp token.csv root@192.168.0.202:/etc/kubernetes
-scp token.csv root@192.168.0.203:/etc/kubernetes
+scp token.csv root@192.168.101.101:/etc/kubernetes
+scp token.csv root@192.168.101.102:/etc/kubernetes
 ```
 ## kube-apiserver
 
@@ -865,7 +865,7 @@ systemctl status kube-apiserver
 
 ## 安装 kubectl 
 
-在192.168.0.201上下载kubectl
+在192.168.101.100上下载kubectl
 
 ```
 cd ~/kube
@@ -1109,12 +1109,12 @@ chmod +x kube-proxy kubelet
 sudo mv kube-proxy kubelet /usr/local/bin/
 mkdir -p /opt/cni/bin
 tar -xvf cni-plugins-linux-amd64-v0.8.5.tgz --directory /opt/cni/bin/
-scp cni-plugins-linux-amd64-v0.8.5.tgz root@192.168.0.202:/root/kube
+scp cni-plugins-linux-amd64-v0.8.5.tgz root@192.168.101.101:/root/kube
 cd ~/kube
 mkdir -p /opt/cni/bin
 tar -xvf cni-plugins-linux-amd64-v0.8.5.tgz --directory /opt/cni/bin
 scp cni-p
-lugins-linux-amd64-v0.8.5.tgz root@192.168.0.203:/root/kube
+lugins-linux-amd64-v0.8.5.tgz root@192.168.101.102:/root/kube
 cd ~/kube
 mkdir -p /opt/cni/bin
 tar -xvf cni-plugins-linux-amd64-v0.8.5.tgz --directory /opt/cni/bin
@@ -1510,9 +1510,9 @@ backend k8s-api
   option tcp-check
   balance roundrobin
   default-server inter 10s downinter 5s rise 2 fall 2 slowstart 60s maxconn 250 maxqueue 256 weight 100
-  server k8s-api-1 192.168.0.201:6443 check
-  server k8s-api-2 192.168.0.202:6443 check
-  server k8s-api-3 192.168.0.203:6443 check
+  server k8s-api-1 192.168.101.100:6443 check
+  server k8s-api-2 192.168.101.101:6443 check
+  server k8s-api-3 192.168.101.102:6443 check
 ```
 ```
 重启keepalived和haproxy

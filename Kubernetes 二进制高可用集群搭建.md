@@ -304,21 +304,21 @@ kubernetes.csr  kubernetes-csr.json  kubernetes-key.pem  kubernetes.pem
 ## 创建kubelet证书
 
 ```
-# node00 
-cat > node00.json <<EOF
+# centos00
+cat > centos00.json <<EOF
 {
-  "CN": "system:node:node00",
+  "CN": "system:node:centos00",
   "key": {
     "algo": "rsa",
     "size": 2048
   },
   "hosts": [
-     "node00",
-     "node01",
-     "node02",
-     "192.168.0.201",
-     "192.168.0.202",
-     "192.168.0.203"
+     "centos00",
+     "centos01",
+     "centos02",
+     "192.168.101.100",
+     "192.168.101.101",
+     "192.168.101.102"
   ],
   "names": [
     {
@@ -331,21 +331,22 @@ cat > node00.json <<EOF
   ]
 }
 EOF
-# node01
-cat > node01.json <<EOF
+
+# centos01
+cat > centos01.json <<EOF
 {
-  "CN": "system:node:node01",
+  "CN": "system:node:centos01",
   "key": {
     "algo": "rsa",
     "size": 2048
   },
   "hosts": [
-     "node00",
-     "node01",
-     "node02",
-     "192.168.0.201",
-     "192.168.0.202",
-     "192.168.0.203"
+     "centos00",
+     "centos01",
+     "centos02",
+     "192.168.101.100",
+     "192.168.101.101",
+     "192.168.101.102"
   ],
   "names": [
     {
@@ -358,21 +359,22 @@ cat > node01.json <<EOF
   ]
 }
 EOF
-# node02
-cat > node02.json <<EOF
+
+# centos02
+cat > centos02.json <<EOF
 {
-  "CN": "system:node:node02",
+  "CN": "system:node:centos02",
   "key": {
     "algo": "rsa",
     "size": 2048
   },
   "hosts": [
-     "node00",
-     "node01",
-     "node02",
-     "192.168.0.201",
-     "192.168.0.202",
-     "192.168.0.203"
+     "centos00",
+     "centos01",
+     "centos02",
+     "192.168.101.100",
+     "192.168.101.101",
+     "192.168.101.102"
   ],
   "names": [
     {
@@ -393,7 +395,7 @@ cfssl gencert \
   -profile=kubernetes \
   centos00.json | cfssljson -bare centos00
   
-cfssl gencert \cfssl gencert \
+cfssl gencert \
   -ca=ca.pem \
   -ca-key=ca-key.pem \
   -config=ca-config.json \
